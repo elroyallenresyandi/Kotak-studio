@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>Kotak Studio — Hasil Foto</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent: #e8c96b;
+  --accent2: #f0a05a;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --trans: 0.3s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"] {
+  --bg: #10101a; --bg2: #181828; --bg3: #20203a;
+  --surface: #1e1e34; --surface2: #28284a;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f0f8; --text2: #9090b8; --text3: #5a5a80;
+  --nav-bg: rgba(16,16,26,0.85); --modal-bg: rgba(0,0,0,0.7);
+}
+[data-theme="light"] {
+  --bg: #f2f0ec; --bg2: #ffffff; --bg3: #e8e4de;
+  --surface: #ffffff; --surface2: #f5f3f0;
+  --border: rgba(0,0,0,0.08);
+  --text: #18181e; --text2: #60607a; --text3: #a0a0b8;
+  --nav-bg: rgba(242,240,236,0.85); --modal-bg: rgba(0,0,0,0.5);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh;
+  transition: background var(--trans), color var(--trans);
+  overflow-x: hidden;
+}
+button, select, input { font-family: inherit; }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px; height: 64px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  transition: background var(--trans);
+}
+.nav-logo { display: flex; align-items: center; gap: 10px; cursor: pointer; text-decoration: none; }
+.nav-logo svg { width: 32px; height: 32px; }
+.nav-wordmark { display: flex; flex-direction: column; line-height: 1; }
+.nav-kotak { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 900; color: var(--text); letter-spacing: -0.01em; }
+.nav-studio { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.nav-right { display: flex; align-items: center; gap: 10px; }
+.theme-toggle {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: all 0.2s;
+}
+.theme-toggle:hover { background: var(--surface2); color: var(--text); }
+
+/* LAYOUT */
+.hasil-page { min-height: 100vh; padding-top: 64px; }
+.hasil-layout { padding: 40px 24px 60px; max-width: 1100px; margin: 0 auto; }
+
+/* HEADER */
+.hasil-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px; margin-bottom: 36px;
+}
+.hasil-title { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 900; color: var(--text); line-height: 1.1; }
+.hasil-subtitle { font-size: 14px; color: var(--text2); margin-top: 6px; }
+.hasil-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(232,201,107,0.12); border: 1px solid rgba(232,201,107,0.25);
+  color: var(--accent); font-size: 12px; font-weight: 600;
+  padding: 4px 12px; border-radius: 50px; margin-top: 8px;
+}
+.action-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* BUTTONS */
+.btn {
+  padding: 10px 18px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap; text-decoration: none;
+}
+.btn:hover { background: var(--surface2); border-color: var(--text3); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #18181e; border-color: transparent;
+  box-shadow: 0 4px 16px rgba(232,201,107,0.2);
+}
+.btn-accent:hover:not(:disabled) { box-shadow: 0 8px 24px rgba(232,201,107,0.35); transform: translateY(-1px); }
+.btn-home { background: var(--surface); color: var(--text2); border-color: var(--border); font-size: 13px; }
+.btn-home:hover { background: var(--surface2); color: var(--text); border-color: var(--text3); }
+.btn-full { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+.ctrl-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+
+/* FOTO GRID */
+.foto-section { margin-bottom: 40px; }
+.foto-section-title { font-size: 14px; font-weight: 600; color: var(--text2); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.foto-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.foto-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.foto-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: all 0.2s; cursor: pointer; }
+.foto-card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 12px 32px rgba(0,0,0,0.25); }
+.foto-card img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
+.foto-card-footer { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+.foto-num { font-size: 11px; font-weight: 700; color: var(--text3); letter-spacing: 0.08em; }
+.foto-card-btns { display: flex; gap: 6px; }
+.icon-btn {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-size: 13px;
+}
+.icon-btn:hover { background: var(--surface2); color: var(--text); }
+
+/* STRIP PREVIEW */
+.strip-section { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 40px; }
+.strip-preview-box {
+  background: #fff; border-radius: 12px; padding: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  min-width: 160px; max-width: 200px;
+  border: 1px solid var(--border); box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.strip-preview-box img { width: 100%; border-radius: 4px; display: block; }
+.strip-aside { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 16px; justify-content: center; }
+.strip-aside-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.strip-aside-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.strip-aside-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* GALLERY */
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.gallery-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; cursor: pointer; transition: all 0.2s; }
+.gallery-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+.gallery-card img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
+.gallery-card-info { padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+.gallery-card-date { font-size: 11px; color: var(--text3); }
+.gallery-card-btns { display: flex; gap: 6px; }
+.gallery-empty { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--text3); }
+.gallery-empty svg { width: 48px; height: 48px; opacity: 0.3; margin-bottom: 12px; display: block; margin: 0 auto 12px; }
+.gallery-empty p { font-size: 15px; }
+
+/* TABS */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.tab-btn { padding: 10px 20px; border: none; background: transparent; color: var(--text2); font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; letter-spacing: 0.02em; }
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* EMPTY STATE */
+.empty-state { text-align: center; padding: 80px 20px; color: var(--text3); }
+.empty-state svg { width: 56px; height: 56px; opacity: 0.25; margin: 0 auto 16px; display: block; }
+.empty-state h3 { font-size: 18px; color: var(--text2); margin-bottom: 8px; }
+.empty-state p { font-size: 14px; margin-bottom: 24px; }
+
+/* MODALS */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: var(--modal-bg); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; opacity: 0; visibility: hidden; transition: all 0.3s;
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 28px;
+  width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto;
+  transform: scale(0.95) translateY(10px);
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-overlay.open .modal { transform: scale(1) translateY(0); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.modal-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); }
+.modal-close {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--bg3);
+  color: var(--text2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; transition: all 0.2s;
+}
+.modal-close:hover { background: var(--surface2); color: var(--text); }
+
+/* EDITOR */
+.editor-body { display: flex; gap: 20px; flex-wrap: wrap; }
+.editor-canvas-wrap { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+#editorCanvas { width: 100%; border-radius: 10px; border: 1px solid var(--border); display: block; }
+.editor-controls { flex: 1; min-width: 220px; display: flex; flex-direction: column; gap: 16px; }
+.ctrl-group { display: flex; flex-direction: column; gap: 8px; }
+.ctrl-row { display: flex; gap: 10px; flex-wrap: wrap; }
+input[type=range] { width: 100%; height: 4px; border-radius: 4px; appearance: none; background: var(--bg3); outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); cursor: pointer; }
+.range-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--text2); }
+.editor-filter-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-btn { padding: 5px 12px; border-radius: 50px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.filter-btn:hover, .filter-btn.active { background: rgba(232,201,107,0.15); border-color: var(--accent); color: var(--accent); }
+.editor-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+select.ctrl-select {
+  flex: 1; padding: 9px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg2); color: var(--text);
+  font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239090b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+select.ctrl-select:hover { border-color: var(--accent); }
+
+/* SHARE */
+@keyframes shareQrSpin { to { transform: rotate(360deg); } }
+.share-body { display: flex; flex-direction: column; gap: 20px; }
+
+.share-qr-canvas-box {
+  background: #ffffff; border-radius: 12px; padding: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.share-qr-canvas-box canvas { border-radius: 4px; display: block; }
+.share-qr-canvas-label { font-size: 10px; color: #aaa; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.share-preview { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.share-preview img { width: 140px; border-radius: 8px; border: 1px solid var(--border); }
+.share-qr { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.share-qr canvas { border-radius: 8px; }
+.share-qr p { font-size: 11px; color: var(--text3); }
+.share-url-row { display: flex; gap: 8px; }
+.share-url-input { flex: 1; padding: 9px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg2); color: var(--text); font-size: 13px; outline: none; }
+.share-socials { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ══════════════════════════════
+   WATERMARK PANEL
+══════════════════════════════ */
+.watermark-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 4px;
+}
+.wm-grid { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-top: 12px; }
+.wm-field { display: flex; flex-direction: column; gap: 6px; }
+.wm-input {
+  padding: 8px 12px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg2); color: var(--text);
+  font-size: 13px; outline: none; transition: border-color 0.2s;
+  min-width: 200px;
+}
+.wm-input:focus { border-color: var(--accent); }
+.wm-color { width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; padding: 2px; background: var(--bg2); }
+.wm-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ══════════════════════════════
+   STIKER MODAL
+══════════════════════════════ */
+.sticker-body { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.sticker-canvas-area {
+  flex: 2; min-width: 260px;
+  position: relative;
+  border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; background: #111;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 240px;
+  user-select: none;
+}
+#stickerBaseImg {
+  display: block; max-width: 100%; max-height: 380px;
+  pointer-events: none; border-radius: 6px;
+}
+#stickerOverlay {
+  position: absolute; inset: 0; pointer-events: none;
+}
+.sticker-el {
+  position: absolute; cursor: grab; pointer-events: all;
+  line-height: 1; display: inline-block;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+}
+.sticker-el:active { cursor: grabbing; }
+.sticker-el.sel { outline: 2px dashed var(--accent); border-radius: 4px; }
+.sticker-el .sticker-del {
+  position: absolute; top: -9px; right: -9px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #e85555; color: #fff; font-size: 10px; font-weight: 700;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+.sticker-sidebar { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 12px; }
+.sticker-cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.sticker-cat-btn { padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.sticker-cat-btn.active, .sticker-cat-btn:hover { background: rgba(232,201,107,0.15); border-color: var(--accent); color: var(--accent); }
+.sticker-palette { display: flex; flex-wrap: wrap; gap: 4px; max-height: 180px; overflow-y: auto; padding: 8px; background: var(--bg2); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.sticker-item { font-size: 26px; cursor: pointer; padding: 3px 5px; border-radius: 6px; transition: background 0.15s; line-height: 1; }
+.sticker-item:hover { background: var(--surface2); }
+.sticker-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.sticker-photo-tab { padding: 5px 12px; border-radius: 50px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); cursor: pointer; transition: all 0.15s; }
+.sticker-photo-tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #18181e; border-color: transparent; }
+.sticker-size-row { display: flex; flex-direction: column; gap: 6px; }
+
+/* ══════════════════════════════
+   GIF MODAL
+══════════════════════════════ */
+.gif-body { display: flex; flex-direction: column; gap: 16px; }
+.gif-desc { font-size: 14px; color: var(--text2); line-height: 1.6; }
+.gif-progress { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px; background: var(--bg2); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.gif-progress-msg { font-size: 13px; color: var(--text2); }
+.progress-track { width: 100%; height: 8px; border-radius: 4px; background: var(--bg3); overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; width: 0%; transition: width 0.25s; }
+.gif-actions { display: flex; gap: 8px; }
+
+
+/* ══════════════════════════════
+   QR DOWNLOAD MODAL
+══════════════════════════════ */
+.qrdl-body { display: flex; flex-direction: column; gap: 20px; align-items: center; text-align: center; }
+.qrdl-canvas-wrap {
+  background: #ffffff; border-radius: 16px; padding: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.qrdl-canvas-wrap canvas { border-radius: 6px; display: block; }
+.qrdl-label { font-size: 11px; color: #888; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; }
+.qrdl-desc { font-size: 14px; color: var(--text2); line-height: 1.65; max-width: 360px; }
+.qrdl-desc strong { color: var(--text); }
+.qrdl-steps {
+  display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 14px 20px; width: 100%;
+}
+.qrdl-step { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); flex: 1; min-width: 70px; }
+.qrdl-step-icon { font-size: 22px; }
+.qrdl-step-txt { text-align: center; line-height: 1.4; }
+.qrdl-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.qrdl-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid var(--border); border-top-color: var(--accent);
+  border-radius: 50%; animation: qrSpin 0.8s linear infinite;
+}
+@keyframes qrSpin { to { transform: rotate(360deg); } }
+.qrdl-loading { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px 0; }
+.qrdl-loading-txt { font-size: 13px; color: var(--text2); }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* TOAST */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); padding: 10px 20px;
+  border-radius: 50px; font-size: 13px; font-weight: 500;
+  z-index: 9998; opacity: 0; transition: all 0.3s;
+  pointer-events: none; white-space: nowrap;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 600px) {
+  nav { padding: 0 16px; }
+  .hasil-layout { padding: 24px 16px 48px; }
+  .hasil-title { font-size: 26px; }
+  .strip-section { flex-direction: column; }
+  .strip-aside { min-width: unset; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="landing.html">
+    <svg viewBox="0 0 32 32" fill="none">
+      <rect x="3" y="3" width="26" height="26" rx="7" fill="#e8c96b" opacity="0.15"/>
+      <rect x="7" y="7" width="18" height="18" rx="4" fill="#e8c96b" opacity="0.25"/>
+      <circle cx="16" cy="16" r="5" fill="#e8c96b"/>
+      <circle cx="16" cy="16" r="3" fill="#18181e"/>
+      <rect x="11" y="8.5" width="4" height="2" rx="1" fill="#e8c96b"/>
+    </svg>
+    <div class="nav-wordmark">
+      <span class="nav-kotak">Kotak</span>
+      <span class="nav-studio">Studio</span>
+    </div>
+  </a>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span style="font-size:13px;color:var(--text3);font-weight:500;">Hasil Foto</span>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Ganti tema" id="themeBtn">🌙</button>
+  </div>
+</nav>
+
+<div class="hasil-page">
+  <div class="hasil-layout">
+
+    <!-- Header -->
+    <div class="hasil-header">
+      <div class="hasil-title-block">
+        <div class="hasil-title">Hasil Foto ✨</div>
+        <div class="hasil-subtitle" id="subtitleDate">Sesi foto kamu sudah selesai</div>
+        <div class="hasil-badge" id="fotoBadge">0 foto diambil</div>
+      </div>
+      <div class="action-bar">
+        <button class="btn btn-home" onclick="KembaliKeDashboard()">← Kembali ke Dashboard</button>
+        <button class="btn btn-accent" onclick="downloadStrip()" id="btnDownload">⬇️ Download Strip</button>
+        <button class="btn" onclick="openQRDownload()" id="btnQRDL" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#18181e;border-color:transparent;">📲 QR Download</button>
+        <button class="btn" onclick="openShare()" id="btnShare">🔗 Share</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('strip', this)">🎞️ Strip & Download</button>
+      <button class="tab-btn" onclick="switchTab('foto', this)">🖼️ Foto Individual</button>
+      <button class="tab-btn" onclick="switchTab('gallery', this)">📁 Gallery</button>
+    </div>
+
+    <!-- TAB: Strip -->
+    <div class="tab-content active" id="tab-strip">
+      <div class="strip-section" id="stripSection">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <h3>Belum ada foto</h3>
+          <p>Selesaikan sesi foto terlebih dahulu</p>
+          <button class="btn btn-accent" onclick="kembaliKeMenu()">📸 Mulai Sesi Foto</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Foto Individual -->
+    <div class="tab-content" id="tab-foto">
+      <div class="foto-section">
+        <div class="foto-section-title">Foto dari sesi ini</div>
+        <div class="foto-grid" id="fotoGrid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <p>Belum ada foto</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Gallery -->
+    <div class="tab-content" id="tab-gallery">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--text);">Semua Sesi Tersimpan</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:4px;">Riwayat foto dari semua sesi sebelumnya</div>
+        </div>
+        <button class="btn btn-accent" onclick="kembaliKeMenu()">+ Sesi Baru</button>
+      </div>
+      <div class="gallery-grid" id="galleryGrid">
+        <div class="gallery-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          <p>Belum ada foto tersimpan</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- EDITOR MODAL -->
+<div class="modal-overlay" id="editorModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Edit Foto</div>
+      <button class="modal-close" onclick="closeModal('editorModal')">✕</button>
+    </div>
+    <div class="editor-body">
+      <div class="editor-canvas-wrap">
+        <canvas id="editorCanvas" width="640" height="480"></canvas>
+        <div class="ctrl-row" style="gap:6px">
+          <button class="btn" onclick="prevEditorPhoto()">← Prev</button>
+          <span id="editorPhotoNum" style="font-size:13px;color:var(--text2);padding:6px 0;flex:1;text-align:center"></span>
+          <button class="btn" onclick="nextEditorPhoto()">Next →</button>
+        </div>
+      </div>
+      <div class="editor-controls">
+        <div class="ctrl-group">
+          <div class="ctrl-label">Filter</div>
+          <div class="editor-filter-btns" id="filterBtns">
+            <button class="filter-btn active" data-filter="none" onclick="setFilter(this,'none')">Original</button>
+            <button class="filter-btn" data-filter="grayscale(100%)" onclick="setFilter(this,'grayscale(100%)')">B&W</button>
+            <button class="filter-btn" data-filter="sepia(80%)" onclick="setFilter(this,'sepia(80%)')">Sepia</button>
+            <button class="filter-btn" data-filter="hue-rotate(180deg)" onclick="setFilter(this,'hue-rotate(180deg)')">Cool</button>
+            <button class="filter-btn" data-filter="saturate(200%)" onclick="setFilter(this,'saturate(200%)')">Vivid</button>
+            <button class="filter-btn" data-filter="contrast(140%) brightness(90%)" onclick="setFilter(this,'contrast(140%) brightness(90%)')">Dramatic</button>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Brightness <span id="brightnessVal">100</span>%</div>
+          <input type="range" id="brightnessR" min="50" max="150" value="100" oninput="applyAdjust()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Contrast <span id="contrastVal">100</span>%</div>
+          <input type="range" id="contrastR" min="50" max="200" value="100" oninput="applyAdjust()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Saturation <span id="saturationVal">100</span>%</div>
+          <input type="range" id="saturationR" min="0" max="200" value="100" oninput="applyAdjust()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Frame Overlay</div>
+          <select class="ctrl-select" id="editorFrameSelect" onchange="applyAdjust()">
+            <option value="">Tanpa Frame</option>
+            <option value="classic">🎞️ Classic Strip</option>
+            <option value="vintage">🟤 Vintage</option>
+            <option value="party">🎉 Party</option>
+            <option value="minimal">⬜ Minimal</option>
+          </select>
+        </div>
+        <div class="editor-actions">
+          <button class="btn" onclick="resetEdits()">↺ Reset</button>
+          <button class="btn btn-accent" onclick="saveEditedPhoto()" style="flex:1">💾 Simpan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">🔗 Share & Download</div>
+      <button class="modal-close" onclick="closeModal('shareModal')">✕</button>
+    </div>
+    <div class="share-body">
+
+      <!-- QR DOWNLOAD AREA -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div class="ctrl-label" style="align-self:flex-start">QR Download Foto Strip</div>
+        <div id="shareQrWrap" style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:12px;border:1px solid var(--border);">
+            <div style="text-align:center;color:var(--text3);font-size:12px;padding:16px;line-height:1.5;">Klik Generate QR<br>untuk upload foto</div>
+          </div>
+        </div>
+        <div id="shareQrStatus" style="font-size:12px;color:var(--text3);text-align:center;max-width:300px;line-height:1.5;">
+          📱 Scan QR dengan kamera HP — foto strip langsung bisa didownload dari mana saja
+        </div>
+        <button class="btn btn-accent" onclick="generateCloudinaryQR()" id="btnGenerateQR" style="width:100%;justify-content:center;">
+          🔗 Upload &amp; Generate QR
+        </button>
+      </div>
+
+      <!-- DIVIDER -->
+      <div style="height:1px;background:var(--border);width:100%"></div>
+
+      <!-- DOWNLOAD BUTTONS -->
+      <div>
+        <div class="ctrl-label" style="margin-bottom:8px">Download Langsung</div>
+        <div class="share-socials">
+          <button class="btn btn-accent" onclick="downloadStrip()">⬇️ Download Strip</button>
+          <button class="btn" onclick="downloadSingle()">🖼️ Foto Pertama</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ STIKER MODAL ══ -->
+<div class="modal-overlay" id="stickerModal">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <div class="modal-title">🎨 Tambah Stiker</div>
+      <button class="modal-close" onclick="closeModal('stickerModal')">✕</button>
+    </div>
+    <div class="sticker-body">
+      <!-- Canvas kiri -->
+      <div style="flex:2;min-width:260px;display:flex;flex-direction:column;gap:10px;">
+        <div class="sticker-tabs" id="stickerPhotoTabs"></div>
+        <div class="sticker-canvas-area" id="stickerCanvasArea">
+          <img id="stickerBaseImg" src="" alt="">
+          <div id="stickerOverlay"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text3)">💡 Klik stiker di kanan → muncul di foto. Drag untuk pindah. ✕ untuk hapus.</div>
+      </div>
+      <!-- Sidebar kanan -->
+      <div class="sticker-sidebar">
+        <div>
+          <div class="ctrl-label" style="margin-bottom:8px">Kategori</div>
+          <div class="sticker-cats" id="stickerCats"></div>
+        </div>
+        <div>
+          <div class="ctrl-label" style="margin-bottom:8px">Stiker</div>
+          <div class="sticker-palette" id="stickerPalette"></div>
+        </div>
+        <div class="sticker-size-row">
+          <div class="ctrl-label">Ukuran: <span id="stickerSizeLabel">36px</span></div>
+          <input type="range" id="stickerSizeR" min="16" max="72" value="36" oninput="document.getElementById('stickerSizeLabel').textContent=this.value+'px'">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="clearStickers()" style="flex:1">🗑️ Hapus Semua</button>
+          <button class="btn btn-accent" onclick="saveStickerToPhoto()" style="flex:1">💾 Simpan ke Foto</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ GIF MODAL ══ -->
+<div class="modal-overlay" id="gifModal">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">🎞️ Export GIF</div>
+      <button class="modal-close" onclick="closeModal('gifModal')">✕</button>
+    </div>
+    <div class="gif-body">
+      <div class="gif-desc">
+        GIF animasi menampilkan setiap foto bergantian — cocok untuk di-share ke media sosial atau WhatsApp! 🚀
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">Delay antar foto: <span id="gifDelayLabel">700</span> ms</div>
+        <input type="range" id="gifDelayR" min="200" max="2000" step="100" value="700" oninput="document.getElementById('gifDelayLabel').textContent=this.value">
+      </div>
+      <div class="ctrl-group">
+        <div class="ctrl-label">Lebar output: <span id="gifWidthLabel">480</span> px</div>
+        <input type="range" id="gifWidthR" min="240" max="640" step="40" value="480" oninput="document.getElementById('gifWidthLabel').textContent=this.value">
+      </div>
+      <div class="gif-progress" id="gifProgress" style="display:none">
+        <div class="gif-progress-msg" id="gifProgressMsg">Memproses...</div>
+        <div class="progress-track" style="width:100%">
+          <div class="progress-fill" id="gifProgressFill"></div>
+        </div>
+      </div>
+      <div class="gif-actions">
+        <button class="btn" onclick="closeModal('gifModal')" style="flex:1">Batal</button>
+        <button class="btn btn-accent" onclick="startGIFExport()" style="flex:2" id="gifStartBtn">🎞️ Buat GIF Sekarang</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ QR DOWNLOAD MODAL ══ -->
+<div class="modal-overlay" id="qrDlModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header">
+      <div class="modal-title">📲 QR Download Foto</div>
+      <button class="modal-close" onclick="closeModal('qrDlModal')">✕</button>
+    </div>
+    <div class="qrdl-body" id="qrDlBody">
+      <div class="qrdl-loading" id="qrDlLoading">
+        <div class="qrdl-spinner"></div>
+        <div class="qrdl-loading-txt">Membangun strip foto...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ══ CONFIG ══ */
+const CLOUDINARY_CLOUD = 'du6kzpnp8';
+const CLOUDINARY_PRESET = 'ml_default';
+
+/* ══ THEME ══ */
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+  document.getElementById('themeBtn').textContent = isDark ? '🌙' : '☀️';
+}
+
+/* ══ STATE ══ */
+let capturedPhotos = [];
+let savedGallery   = [];
+let editorPhotos   = [];
+let editorIndex    = 0;
+let editorFilter   = 'none';
+let editorBaseImage = null;
+
+/* ══ INIT ══ */
+function init() {
+  try { const r = localStorage.getItem('kotak_current_photos'); if (r) capturedPhotos = JSON.parse(r); } catch(e) {}
+  try { savedGallery = JSON.parse(localStorage.getItem('kotak_gallery') || '[]'); } catch(e) {}
+  const dateStr = localStorage.getItem('kotak_current_date') || new Date().toLocaleDateString('id-ID');
+  document.getElementById('subtitleDate').textContent = `Sesi foto — ${dateStr}`;
+  document.getElementById('fotoBadge').textContent = `${capturedPhotos.length} foto diambil`;
+  renderStripSection();
+  renderFotoGrid();
+  renderGallery();
+}
+
+/* ══ TABS ══ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+  if (name === 'gallery') renderGallery();
+}
+
+/* ══ STRIP SECTION ══ */
+function renderStripSection() {
+  const sec = document.getElementById('stripSection');
+  if (!capturedPhotos.length) {
+    sec.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      <h3>Belum ada foto</h3>
+      <p>Selesaikan sesi foto terlebih dahulu</p>
+      <button class="btn btn-accent" onclick="kembaliKeMenu()">📸 Mulai Sesi Foto</button>
+    </div>`;
+    return;
+  }
+  const stripImgs = capturedPhotos.map(p => `<img src="${p}" alt="Foto">`).join('');
+  sec.innerHTML = `
+    <div class="strip-preview-box" id="stripPreviewBox">${stripImgs}</div>
+    <div class="strip-aside">
+      <div class="strip-aside-title">Strip Kamu Sudah Siap! 🎉</div>
+      <div class="strip-aside-desc">
+        Semua <strong>${capturedPhotos.length} foto</strong> berhasil diambil. Download, tambah stiker, buat GIF, atau print strip kamu!
+      </div>
+
+      <div class="strip-aside-actions">
+        <button class="btn btn-accent" onclick="downloadStrip()">⬇️ Download Strip</button>
+        <button class="btn" onclick="openEditor()">✏️ Edit Foto</button>
+        <button class="btn" onclick="openStickerModal()">🎨 Stiker</button>
+        <button class="btn" onclick="openGIFModal()">🎞️ Export GIF</button>
+        <button class="btn" onclick="printStrip()">🖨️ Print</button>
+        <button class="btn" onclick="openShare()">🔗 Share</button>
+        <button class="btn btn-home" onclick="kembaliKeMenu()">← Sesi Baru</button>
+      </div>
+
+      <!-- WATERMARK SECTION -->
+      <div class="watermark-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text)">💧 Watermark Strip</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:2px">Tambahkan teks/logo ke strip sebelum download</div>
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text2)">
+            <input type="checkbox" id="wmEnabled" onchange="toggleWatermark()" style="accent-color:var(--accent);width:16px;height:16px">
+            Aktifkan
+          </label>
+        </div>
+        <div id="wmControls" style="display:none">
+          <div class="wm-grid">
+            <div class="wm-field" style="flex:1">
+              <label class="ctrl-label">Teks Watermark</label>
+              <input class="wm-input" id="wmText" type="text" value="Kotak Studio" placeholder="Teks watermark kamu...">
+            </div>
+            <div class="wm-field">
+              <label class="ctrl-label">Warna</label>
+              <input type="color" id="wmColor" value="#ffffff" class="wm-color">
+            </div>
+          </div>
+          <div class="wm-grid" style="margin-top:10px">
+            <div class="wm-field" style="flex:1">
+              <label class="ctrl-label">Posisi</label>
+              <select class="ctrl-select" id="wmPos">
+                <option value="bottom-right">Kanan Bawah</option>
+                <option value="bottom-left">Kiri Bawah</option>
+                <option value="bottom-center">Tengah Bawah</option>
+                <option value="top-right">Kanan Atas</option>
+                <option value="top-left">Kiri Atas</option>
+              </select>
+            </div>
+            <div class="wm-field" style="flex:1">
+              <label class="ctrl-label">Opacity: <span id="wmOpacityVal">60</span>%</label>
+              <input type="range" id="wmOpacity" min="10" max="100" value="60" oninput="document.getElementById('wmOpacityVal').textContent=this.value">
+            </div>
+            <div class="wm-field" style="flex:1">
+              <label class="ctrl-label">Ukuran Font: <span id="wmSizeVal">22</span>px</label>
+              <input type="range" id="wmFontSize" min="12" max="48" value="22" oninput="document.getElementById('wmSizeVal').textContent=this.value">
+            </div>
+          </div>
+          <div class="wm-actions">
+            <button class="btn btn-accent" onclick="downloadStripWithWatermark()">⬇️ Download dengan Watermark</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+function toggleWatermark() {
+  const enabled = document.getElementById('wmEnabled').checked;
+  document.getElementById('wmControls').style.display = enabled ? 'block' : 'none';
+}
+
+/* ══ FOTO GRID ══ */
+function renderFotoGrid() {
+  const grid = document.getElementById('fotoGrid');
+  if (!capturedPhotos.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      <p>Belum ada foto</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = capturedPhotos.map((p, i) => `
+    <div class="foto-card" onclick="openEditorAt(${i})">
+      <img src="${p}" alt="Foto ${i+1}">
+      <div class="foto-card-footer">
+        <span class="foto-num">FOTO ${i+1}</span>
+        <div class="foto-card-btns">
+          <button class="icon-btn" onclick="event.stopPropagation();openEditorAt(${i})" title="Edit">✏️</button>
+          <button class="icon-btn" onclick="event.stopPropagation();openStickerAt(${i})" title="Stiker">🎨</button>
+          <button class="icon-btn" onclick="event.stopPropagation();downloadSinglePhoto('${p}')" title="Download">⬇️</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ══ GALLERY ══ */
+function renderGallery() {
+  try { savedGallery = JSON.parse(localStorage.getItem('kotak_gallery') || '[]'); } catch(e) {}
+  const grid = document.getElementById('galleryGrid');
+  if (!savedGallery.length) {
+    grid.innerHTML = `<div class="gallery-empty">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      <p>Belum ada foto tersimpan</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = savedGallery.map((entry, ei) =>
+    entry.photos.map((photo, pi) => `
+      <div class="gallery-card" onclick="openEditorFromGallery(${ei},${pi})">
+        <img src="${photo}" alt="Foto">
+        <div class="gallery-card-info">
+          <span class="gallery-card-date">${entry.date}</span>
+          <div class="gallery-card-btns">
+            <button class="icon-btn" onclick="event.stopPropagation();downloadSinglePhoto('${photo}')" title="Download">⬇️</button>
+            <button class="icon-btn" style="color:#ff6b6b" onclick="event.stopPropagation();deleteGalleryEntry(${ei})" title="Hapus">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('')
+  ).join('');
+}
+function deleteGalleryEntry(idx) {
+  savedGallery.splice(idx, 1);
+  try { localStorage.setItem('kotak_gallery', JSON.stringify(savedGallery)); } catch(e) {}
+  renderGallery(); showToast('Foto dihapus');
+}
+
+/* ══ NAVIGASI ══ */
+function kembaliKeMenu() { window.location.href = 'photosession (3).html'; }
+function KembaliKeDashboard() { window.location.href = 'index.html'; }
+
+/* ══ EDITOR ══ */
+function openEditor() {
+  if (!capturedPhotos.length) return;
+  editorPhotos = [...capturedPhotos]; editorIndex = 0;
+  loadEditorPhoto(); openModal('editorModal');
+}
+function openEditorAt(idx) {
+  editorPhotos = [...capturedPhotos]; editorIndex = idx;
+  loadEditorPhoto(); openModal('editorModal');
+}
+function openEditorFromGallery(ei, pi) {
+  editorPhotos = savedGallery[ei].photos; editorIndex = pi;
+  loadEditorPhoto(); openModal('editorModal');
+}
+function loadEditorPhoto() {
+  const ec = document.getElementById('editorCanvas');
+  document.getElementById('editorPhotoNum').textContent = `${editorIndex+1} / ${editorPhotos.length}`;
+  editorBaseImage = new Image();
+  editorBaseImage.onload = () => { ec.width = editorBaseImage.naturalWidth; ec.height = editorBaseImage.naturalHeight; applyAdjust(); };
+  editorBaseImage.src = editorPhotos[editorIndex];
+}
+function prevEditorPhoto() { if (editorIndex > 0) { editorIndex--; loadEditorPhoto(); } }
+function nextEditorPhoto() { if (editorIndex < editorPhotos.length - 1) { editorIndex++; loadEditorPhoto(); } }
+function setFilter(btn, f) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); editorFilter = f; applyAdjust();
+}
+function applyAdjust() {
+  if (!editorBaseImage) return;
+  const ec = document.getElementById('editorCanvas');
+  const ectx = ec.getContext('2d');
+  const bright = document.getElementById('brightnessR').value;
+  const cont   = document.getElementById('contrastR').value;
+  const sat    = document.getElementById('saturationR').value;
+  document.getElementById('brightnessVal').textContent = bright;
+  document.getElementById('contrastVal').textContent   = cont;
+  document.getElementById('saturationVal').textContent  = sat;
+  let filterStr = `brightness(${bright}%) contrast(${cont}%) saturate(${sat}%)`;
+  if (editorFilter !== 'none') filterStr += ' ' + editorFilter;
+  ectx.filter = filterStr;
+  ectx.drawImage(editorBaseImage, 0, 0);
+  ectx.filter = 'none';
+}
+function resetEdits() {
+  document.getElementById('brightnessR').value = 100;
+  document.getElementById('contrastR').value   = 100;
+  document.getElementById('saturationR').value  = 100;
+  editorFilter = 'none';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filter-btn[data-filter="none"]').classList.add('active');
+  applyAdjust();
+}
+function saveEditedPhoto() {
+  const ec = document.getElementById('editorCanvas');
+  const url = ec.toDataURL('image/jpeg', 0.92);
+  capturedPhotos[editorIndex] = url;
+  try { localStorage.setItem('kotak_current_photos', JSON.stringify(capturedPhotos)); } catch(e) {}
+  renderFotoGrid(); renderStripSection();
+  showToast('Perubahan disimpan!'); closeModal('editorModal');
+}
+
+/* ══ BUILD STRIP CANVAS (shared) ══ */
+async function buildStripCanvas(opts = {}) {
+  const photos = capturedPhotos;
+  if (!photos.length) return null;
+  const pw = 640, ph = 480, gap = 8, padH = 20, padV = 20;
+  const n = photos.length;
+  const sc = document.createElement('canvas');
+  sc.width  = pw + padH * 2;
+  sc.height = n * ph + (n-1) * gap + padV * 2;
+  const sctx = sc.getContext('2d');
+  sctx.fillStyle = '#ffffff';
+  sctx.fillRect(0, 0, sc.width, sc.height);
+  const loadImg = src => new Promise(res => { const i = new Image(); i.onload = () => res(i); i.src = src; });
+  for (let i = 0; i < n; i++) {
+    const img = await loadImg(photos[i]);
+    sctx.drawImage(img, padH, padV + i*(ph+gap), pw, ph);
+  }
+  // Watermark
+  if (opts.watermark) {
+    const { text, color, pos, opacity, fontSize } = opts.watermark;
+    if (text) {
+      sctx.save();
+      sctx.globalAlpha = opacity / 100;
+      sctx.font = `bold ${fontSize}px 'Space Grotesk', sans-serif`;
+      sctx.fillStyle = color;
+      sctx.shadowColor = 'rgba(0,0,0,0.6)';
+      sctx.shadowBlur = 8;
+      const margin = 18;
+      const tw = sctx.measureText(text).width;
+      let x, y;
+      if (pos === 'bottom-right')  { x = sc.width - tw - margin; y = sc.height - margin; }
+      else if (pos === 'bottom-left')   { x = margin; y = sc.height - margin; }
+      else if (pos === 'bottom-center') { x = (sc.width - tw) / 2; y = sc.height - margin; }
+      else if (pos === 'top-right')     { x = sc.width - tw - margin; y = margin + fontSize; }
+      else if (pos === 'top-left')      { x = margin; y = margin + fontSize; }
+      sctx.fillText(text, x, y);
+      sctx.restore();
+    }
+  }
+  return sc;
+}
+
+/* ══ DOWNLOAD STRIP ══ */
+async function downloadStrip() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+  const sc = await buildStripCanvas();
+  const a = document.createElement('a');
+  a.download = 'kotak-studio-strip.jpg';
+  a.href = sc.toDataURL('image/jpeg', 0.92);
+  a.click();
+  showToast('Strip didownload!');
+}
+
+async function downloadStripWithWatermark() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+  const text     = document.getElementById('wmText').value.trim();
+  const color    = document.getElementById('wmColor').value;
+  const pos      = document.getElementById('wmPos').value;
+  const opacity  = parseInt(document.getElementById('wmOpacity').value);
+  const fontSize = parseInt(document.getElementById('wmFontSize').value);
+  if (!text) { showToast('Isi teks watermark dulu!'); return; }
+  showToast('Membuat strip dengan watermark...');
+  const sc = await buildStripCanvas({ watermark: { text, color, pos, opacity, fontSize } });
+  const a = document.createElement('a');
+  a.download = 'kotak-studio-strip-watermark.jpg';
+  a.href = sc.toDataURL('image/jpeg', 0.92);
+  a.click();
+  showToast('Strip dengan watermark berhasil didownload! 💧');
+}
+
+/* ══ DOWNLOAD SINGLE ══ */
+function downloadSingle() { if (!capturedPhotos.length) return; downloadSinglePhoto(capturedPhotos[0]); }
+function downloadSinglePhoto(url) {
+  const a = document.createElement('a');
+  a.download = 'kotak-studio.jpg'; a.href = url; a.click();
+  showToast('Foto didownload!');
+}
+
+/* ══════════════════════════════════
+   STIKER DRAG & DROP
+══════════════════════════════════ */
+const STICKER_DATA = {
+  '😀 Ekspresi': ['😀','😂','🤣','😍','🥰','😎','🤩','😜','🥳','😤','🤔','😱','🤯','😭','🥹','😏','🫡','🤭','😋'],
+  '🎉 Party':    ['🎉','🎊','🎈','🎀','🎁','🥂','🍰','🎂','✨','🌟','💥','🎆','🎇','🪅','🎵','🎶','🎸','🎤'],
+  '💕 Love':     ['❤️','🧡','💛','💚','💙','💜','💖','💗','💘','💝','🫶','💑','💏','💌','💋','🌹','💍','🥀'],
+  '🌸 Alam':     ['🌸','🌺','🌼','🌻','🌹','🍀','🌿','🍃','🦋','🐝','🌈','☀️','🌙','⭐','🌊','🏔️','🌴','🍁'],
+  '🍕 Makanan':  ['🍕','🍔','🍟','🍣','🍩','🍪','🎂','🍦','🧁','☕','🧋','🍓','🍉','🥑','🍜','🥗','🍿','🧃'],
+  '✨ Efek':     ['⭐','💫','✨','❄️','🔥','⚡','🌊','💢','💥','💬','💭','🎯','🔮','🪄','👑','💎','🏆','🎭'],
+};
+
+let stickerActivePhoto = 0;
+let placedStickers     = {}; // { photoIdx: [{emoji,x%,y%,size}] }
+
+function openStickerModal() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+  stickerActivePhoto = 0;
+  renderStickerPhotoTabs();
+  renderStickerCats();
+  loadStickerPhoto(0);
+  openModal('stickerModal');
+}
+function openStickerAt(idx) {
+  if (!capturedPhotos.length) return;
+  stickerActivePhoto = idx;
+  renderStickerPhotoTabs();
+  renderStickerCats();
+  loadStickerPhoto(idx);
+  openModal('stickerModal');
+}
+
+function renderStickerPhotoTabs() {
+  document.getElementById('stickerPhotoTabs').innerHTML = capturedPhotos.map((_, i) =>
+    `<button class="sticker-photo-tab ${i===stickerActivePhoto?'active':''}" onclick="switchStickerPhoto(${i})">Foto ${i+1}</button>`
+  ).join('');
+}
+
+function switchStickerPhoto(idx) {
+  stickerActivePhoto = idx;
+  renderStickerPhotoTabs();
+  loadStickerPhoto(idx);
+}
+
+function loadStickerPhoto(idx) {
+  const img = document.getElementById('stickerBaseImg');
+  img.src = capturedPhotos[idx];
+  const overlay = document.getElementById('stickerOverlay');
+  overlay.innerHTML = '';
+  (placedStickers[idx] || []).forEach((s, si) => createStickerEl(s, si));
+}
+
+function renderStickerCats() {
+  const cats = Object.keys(STICKER_DATA);
+  document.getElementById('stickerCats').innerHTML = cats.map((c, i) =>
+    `<button class="sticker-cat-btn ${i===0?'active':''}" onclick="switchStickerCat(this,'${c}')">${c}</button>`
+  ).join('');
+  renderStickerPalette(cats[0]);
+}
+
+function switchStickerCat(btn, cat) {
+  document.querySelectorAll('.sticker-cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderStickerPalette(cat);
+}
+
+function renderStickerPalette(cat) {
+  document.getElementById('stickerPalette').innerHTML = (STICKER_DATA[cat]||[]).map(s =>
+    `<span class="sticker-item" onclick="addSticker('${s}')" title="${s}">${s}</span>`
+  ).join('');
+}
+
+function addSticker(emoji) {
+  const idx = stickerActivePhoto;
+  if (!placedStickers[idx]) placedStickers[idx] = [];
+  const size = parseInt(document.getElementById('stickerSizeR').value) || 36;
+  const s = { emoji, x: 40 + Math.random()*20, y: 40 + Math.random()*20, size };
+  placedStickers[idx].push(s);
+  const si = placedStickers[idx].length - 1;
+  createStickerEl(s, si);
+}
+
+function createStickerEl(s, si) {
+  const overlay = document.getElementById('stickerOverlay');
+  const el = document.createElement('div');
+  el.className = 'sticker-el';
+  el.dataset.si = si;
+  el.style.left     = s.x + '%';
+  el.style.top      = s.y + '%';
+  el.style.fontSize = s.size + 'px';
+  el.textContent = s.emoji;
+
+  // Delete button
+  const del = document.createElement('button');
+  del.className = 'sticker-del';
+  del.textContent = '✕';
+  del.addEventListener('click', e => { e.stopPropagation(); removeSticker(si); });
+  el.appendChild(del);
+
+  // Drag
+  el.addEventListener('mousedown', startDrag);
+  el.addEventListener('touchstart', startDrag, { passive: false });
+  overlay.appendChild(el);
+}
+
+function removeSticker(si) {
+  const idx = stickerActivePhoto;
+  if (placedStickers[idx]) placedStickers[idx].splice(si, 1);
+  loadStickerPhoto(idx);
+}
+
+function clearStickers() {
+  placedStickers[stickerActivePhoto] = [];
+  document.getElementById('stickerOverlay').innerHTML = '';
+  showToast('Stiker dihapus');
+}
+
+function startDrag(e) {
+  e.preventDefault();
+  const el  = e.currentTarget;
+  const si  = parseInt(el.dataset.si);
+  const idx = stickerActivePhoto;
+  const area = document.getElementById('stickerCanvasArea');
+  const aRect = area.getBoundingClientRect();
+  document.querySelectorAll('.sticker-el').forEach(x => x.classList.remove('sel'));
+  el.classList.add('sel');
+
+  const getXY = ev => {
+    const src = ev.touches ? ev.touches[0] : ev;
+    return { cx: src.clientX, cy: src.clientY };
+  };
+  const { cx: startX, cy: startY } = getXY(e);
+  const startPctX = parseFloat(el.style.left);
+  const startPctY = parseFloat(el.style.top);
+
+  function onMove(ev) {
+    const { cx, cy } = getXY(ev);
+    let px = startPctX + ((cx - startX) / aRect.width)  * 100;
+    let py = startPctY + ((cy - startY) / aRect.height) * 100;
+    px = Math.max(0, Math.min(100, px));
+    py = Math.max(0, Math.min(100, py));
+    el.style.left = px + '%';
+    el.style.top  = py + '%';
+    if (placedStickers[idx] && placedStickers[idx][si]) {
+      placedStickers[idx][si].x = px;
+      placedStickers[idx][si].y = py;
+    }
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend', onUp);
+    el.classList.remove('sel');
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend', onUp);
+}
+
+async function saveStickerToPhoto() {
+  const idx = stickerActivePhoto;
+  const stickers = placedStickers[idx] || [];
+  if (!stickers.length) { showToast('Tidak ada stiker di foto ini'); return; }
+
+  const baseImg = document.getElementById('stickerBaseImg');
+  const area    = document.getElementById('stickerCanvasArea');
+  const iRect   = baseImg.getBoundingClientRect();
+  const aRect   = area.getBoundingClientRect();
+
+  const nw = baseImg.naturalWidth  || 640;
+  const nh = baseImg.naturalHeight || 480;
+  const scaleX = nw / iRect.width;
+  const scaleY = nh / iRect.height;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = nw; canvas.height = nh;
+  const ctx = canvas.getContext('2d');
+
+  // Draw base image
+  const base = new Image();
+  await new Promise(res => { base.onload = res; base.src = capturedPhotos[idx]; });
+  ctx.drawImage(base, 0, 0, nw, nh);
+
+  // Offset dari sisi area ke gambar
+  const imgOffsetX = ((iRect.left - aRect.left) / aRect.width)  * 100;
+  const imgOffsetY = ((iRect.top  - aRect.top)  / aRect.height) * 100;
+  const imgPctW    = (iRect.width  / aRect.width)  * 100;
+  const imgPctH    = (iRect.height / aRect.height) * 100;
+
+  for (const s of stickers) {
+    // Posisi dalam % area → pixel dalam gambar
+    const relX = ((s.x - imgOffsetX) / imgPctW) * nw;
+    const relY = ((s.y - imgOffsetY) / imgPctH) * nh;
+    const sz   = s.size * Math.max(scaleX, scaleY) * 0.85;
+    ctx.font = `${sz}px serif`;
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(s.emoji, relX, relY);
+  }
+
+  capturedPhotos[idx] = canvas.toDataURL('image/jpeg', 0.92);
+  try { localStorage.setItem('kotak_current_photos', JSON.stringify(capturedPhotos)); } catch(e) {}
+  placedStickers[idx] = [];
+  renderFotoGrid();
+  renderStripSection();
+  closeModal('stickerModal');
+  showToast('Stiker berhasil disimpan ke foto! ✨');
+}
+
+/* ══════════════════════════════════
+   GIF EXPORT
+══════════════════════════════════ */
+function openGIFModal() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+  openModal('gifModal');
+}
+
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) { res(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function startGIFExport() {
+  const btn      = document.getElementById('gifStartBtn');
+  const progress = document.getElementById('gifProgress');
+  const fill     = document.getElementById('gifProgressFill');
+  const msg      = document.getElementById('gifProgressMsg');
+  btn.disabled   = true;
+  progress.style.display = 'flex';
+  fill.style.width = '0%';
+
+  try {
+    msg.textContent = 'Memuat library GIF...';
+    fill.style.width = '10%';
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js');
+
+    const delay  = parseInt(document.getElementById('gifDelayR').value)  || 700;
+    const outW   = parseInt(document.getElementById('gifWidthR').value)   || 480;
+
+    msg.textContent = 'Memuat foto...';
+    fill.style.width = '20%';
+
+    const loadImg = src => new Promise(res => {
+      const i = new Image(); i.crossOrigin = 'anonymous';
+      i.onload = () => res(i); i.src = src;
+    });
+    const imgs   = await Promise.all(capturedPhotos.map(loadImg));
+    const aspect = imgs[0].naturalHeight / imgs[0].naturalWidth;
+    const outH   = Math.round(outW * aspect);
+
+    const gif = new GIF({
+      workers: 2, quality: 8,
+      width: outW, height: outH,
+      workerScript: 'https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js'
+    });
+
+    const tmp = document.createElement('canvas');
+    tmp.width = outW; tmp.height = outH;
+    const tc  = tmp.getContext('2d');
+
+    msg.textContent = 'Memproses frame...';
+    for (let i = 0; i < imgs.length; i++) {
+      tc.clearRect(0, 0, outW, outH);
+      tc.drawImage(imgs[i], 0, 0, outW, outH);
+      gif.addFrame(tmp, { copy: true, delay });
+      fill.style.width = (20 + 50 * (i+1)/imgs.length) + '%';
+    }
+
+    gif.on('progress', p => {
+      fill.style.width = (70 + p * 29) + '%';
+      msg.textContent = `Rendering GIF... ${Math.round(p*100)}%`;
+    });
+    gif.on('finished', blob => {
+      fill.style.width = '100%';
+      msg.textContent = 'Selesai! Mendownload...';
+      const url = URL.createObjectURL(blob);
+      const a   = document.createElement('a');
+      a.download = 'kotak-studio.gif'; a.href = url; a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      showToast('GIF berhasil dibuat! 🎞️');
+      setTimeout(() => {
+        btn.disabled = false;
+        progress.style.display = 'none';
+        fill.style.width = '0%';
+        closeModal('gifModal');
+      }, 1500);
+    });
+    gif.on('error', () => { throw new Error('GIF render error'); });
+    gif.render();
+    msg.textContent = 'Rendering GIF...';
+
+  } catch(err) {
+    showToast('Gagal membuat GIF: ' + err.message);
+    btn.disabled = false;
+    progress.style.display = 'none';
+  }
+}
+
+/* ══════════════════════════════════
+   PRINT STRIP
+══════════════════════════════════ */
+async function printStrip() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+  showToast('Menyiapkan halaman print...');
+  const sc = await buildStripCanvas();
+  if (!sc) return;
+  const dataUrl = sc.toDataURL('image/jpeg', 0.95);
+  const pw = window.open('', '_blank', 'width=680,height=900');
+  if (!pw) { showToast('Izinkan popup browser untuk print'); return; }
+  pw.document.write(`<!DOCTYPE html>
+<html><head>
+<title>Print Strip — Kotak Studio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #f5f5f5; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 24px; gap: 16px; }
+  .strip-img { max-width: 400px; width: 100%; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.15); display: block; }
+  .toolbar { display: flex; gap: 10px; }
+  button { padding: 10px 22px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #e8c96b; color: #18181e; }
+  .btn-close { background: #eee; color: #333; }
+  .info { font-size: 12px; color: #999; }
+  @media print { .toolbar, .info { display: none; } body { padding: 0; background: white; } .strip-img { box-shadow: none; max-width: 100%; } }
+<\/style>
+<\/head><body>
+<div class="toolbar">
+  <button class="btn-print" onclick="window.print()">🖨️ Print Sekarang</button>
+  <button class="btn-close" onclick="window.close()">✕ Tutup</button>
+</div>
+<img class="strip-img" src="${dataUrl}" alt="Strip Kotak Studio">
+<div class="info">Kotak Studio — ${new Date().toLocaleDateString('id-ID')}</div>
+<\/body><\/html>`);
+  pw.document.close();
+  pw.focus();
+}
+
+
+/* ══════════════════════════════════
+   QR DOWNLOAD (via Cloudinary)
+══════════════════════════════════ */
+async function uploadToCloudinary(base64) {
+  const blob = await (await fetch('data:image/jpeg;base64,' + base64)).blob();
+  const form = new FormData();
+  form.append('file', blob, 'kotak-studio-' + Date.now() + '.jpg');
+  form.append('upload_preset', CLOUDINARY_PRESET);
+  const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: form });
+  const json = await res.json();
+  if (!json.secure_url) throw new Error(json.error?.message || 'Upload Cloudinary gagal');
+  return json.secure_url;
+}
+
+async function openQRDownload() {
+  if (!capturedPhotos.length) { showToast('Belum ada foto'); return; }
+
+  const body = document.getElementById('qrDlBody');
+  body.innerHTML = `
+    <div class="qrdl-loading">
+      <div class="qrdl-spinner"></div>
+      <div class="qrdl-loading-txt" id="qrDlMsg">Membangun strip foto...</div>
+    </div>`;
+  openModal('qrDlModal');
+
+  try {
+    const msg = () => document.getElementById('qrDlMsg');
+
+    // 1. Build strip canvas
+    const sc = await buildStripCanvas();
+    if (!sc) throw new Error('Gagal membuat strip');
+    const base64 = sc.toDataURL('image/jpeg', 0.92).split(',')[1];
+
+    // 2. Upload ke Cloudinary (otomatis)
+    msg().textContent = 'Mengupload ke Cloudinary...';
+    const imageUrl = await uploadToCloudinary(base64);
+
+    // 3. Generate QR dari URL Cloudinary
+    msg().textContent = 'Membuat QR code...';
+    QRCode.toCanvas(imageUrl, {
+      width: 220,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#000000', light: '#ffffff' }
+    }, (err, qrCanvas) => {
+      if (err) { showToast('QR gagal: ' + err.message); closeModal('qrDlModal'); return; }
+
+      body.innerHTML = `
+        <div class="qrdl-canvas-wrap">
+          <div class="qrdl-label">Scan untuk Download</div>
+        </div>
+        <p class="qrdl-desc">
+          Scan QR dengan <strong>kamera HP</strong> — foto strip langsung terbuka dan bisa didownload dari HP manapun!
+        </p>
+        <div class="qrdl-steps">
+          <div class="qrdl-step"><div class="qrdl-step-icon">📷</div><div class="qrdl-step-txt">Buka kamera HP</div></div>
+          <div class="qrdl-step"><div class="qrdl-step-icon">🔲</div><div class="qrdl-step-txt">Scan QR code</div></div>
+          <div class="qrdl-step"><div class="qrdl-step-icon">⬇️</div><div class="qrdl-step-txt">Download foto</div></div>
+        </div>
+        <div class="qrdl-actions">
+          <button class="btn" onclick="downloadStrip()">⬇️ Download Langsung</button>
+          <button class="btn btn-accent" onclick="closeModal('qrDlModal')">✓ Selesai</button>
+        </div>`;
+
+      const wrap = body.querySelector('.qrdl-canvas-wrap');
+      wrap.insertBefore(qrCanvas, wrap.querySelector('.qrdl-label'));
+      showToast('QR siap di-scan dari HP manapun! 🎉');
+    });
+
+  } catch(err) {
+    body.innerHTML = `<div style="text-align:center;padding:20px;color:#ff6b6b;font-size:13px;">❌ ${err.message}<br><br><button class="btn" onclick="closeModal('qrDlModal')">Tutup</button></div>`;
+    showToast('Gagal: ' + err.message);
+  }
+}
+
+/* ══ SHARE ══ */
+function openShare() {
+  if (!capturedPhotos.length) return;
+  document.getElementById('shareQrWrap').innerHTML = `
+    <div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:12px;border:1px solid var(--border);">
+      <div style="text-align:center;color:var(--text3);font-size:12px;padding:16px;line-height:1.5;">Mempersiapkan upload...</div>
+    </div>`;
+  document.getElementById('shareQrStatus').textContent = '⏳ Sedang upload otomatis ke Cloudinary...';
+  document.getElementById('btnGenerateQR').disabled = true;
+  document.getElementById('btnGenerateQR').textContent = '⏳ Mengupload...';
+  openModal('shareModal');
+  generateCloudinaryQR();
+}
+
+async function generateCloudinaryQR() {
+  const wrap   = document.getElementById('shareQrWrap');
+  const status = document.getElementById('shareQrStatus');
+  const btn    = document.getElementById('btnGenerateQR');
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Mengupload foto...';
+  wrap.innerHTML = `<div style="width:180px;height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg2);border-radius:12px;border:1px solid var(--border);">
+    <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:shareQrSpin 0.8s linear infinite"></div>
+    <div style="font-size:11px;color:var(--text3)">Mengupload ke Cloudinary...</div>
+  </div>`;
+  status.textContent = '⏳ Sedang upload foto strip ke Cloudinary...';
+
+  try {
+    const sc = await buildStripCanvas();
+    if (!sc) throw new Error('Gagal membangun strip');
+    const base64 = sc.toDataURL('image/jpeg', 0.92).split(',')[1];
+
+    const imageUrl = await uploadToCloudinary(base64);
+
+    btn.textContent = '✓ QR Siap!';
+    status.innerHTML = `✅ Upload berhasil! <a href="${imageUrl}" target="_blank" style="color:var(--accent);text-decoration:none;">Buka link foto</a>`;
+
+    wrap.innerHTML = '';
+    QRCode.toCanvas(imageUrl, {
+      width: 200,
+      errorCorrectionLevel: 'M',
+      color: { dark: '#000000', light: '#ffffff' }
+    }, (err, canvas) => {
+      if (err) { wrap.innerHTML = `<p style="color:var(--text3);font-size:13px">Gagal buat QR: ${err}</p>`; return; }
+      const box = document.createElement('div');
+      box.className = 'share-qr-canvas-box';
+      const lbl = document.createElement('div');
+      lbl.className = 'share-qr-canvas-label';
+      lbl.textContent = 'Scan → Download Foto';
+      box.appendChild(canvas);
+      box.appendChild(lbl);
+      wrap.appendChild(box);
+    });
+
+    showToast('Upload berhasil! QR siap di-scan 🎉');
+
+  } catch(err) {
+    btn.disabled = false;
+    btn.textContent = '🔗 Upload & Generate QR';
+    wrap.innerHTML = `<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:var(--bg2);border-radius:12px;border:1px solid var(--border);padding:16px;text-align:center;"><div style="color:#ff6b6b;font-size:12px;line-height:1.5;">❌ ${err.message}</div></div>`;
+    status.textContent = 'Upload gagal. Cek koneksi internet.';
+    showToast('Upload gagal: ' + err.message);
+  }
+}
+
+function copyShareUrl() {
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => showToast('Link disalin!')).catch(() => showToast('Gagal menyalin'));
+}
+
+/* ══ MODAL HELPERS ══ */
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+/* ══ TOAST ══ */
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+init();
+</script>
+</body>
+</html>
